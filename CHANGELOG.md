@@ -1,4 +1,12 @@
+# v0.7.1 (2023-12-23)
+## What's Changed
+
+## New Contributors
+
+**Full Changelog**: https://github.com/gojue/ecapture/compare/v0.7.0...v0.7.1
+
 <hr>
+
 # v0.7.0 (2023-12-03)
 ## 🚀 Breaking Changes
 - Split `nss/gnutls/openssl` into three separate submodules. Corresponding to the `./ecapture nss`, `./ecapture gnutls`, `ecapture tls` commands.
@@ -42,7 +50,7 @@ Start the keylog mode of eCapture first.
 ecapture tls -m keylog --keylogfile=ecapture_masterkey.log
 ```
 
-### 终端2
+### Terminal 2
 Start the tshark tool by specifying tls.keylog_file as the captured key file by eCapture, named ecapture_masterkey.
 
 再启动`tshark`工具，指定`tls.keylog_file`为eCapture捕获的密钥文件`ecapture_masterkey`
@@ -63,7 +71,11 @@ Afterward, any software that uses the eCapture HOOK with OpenSSL libraries can a
 See [issue #432](https://github.com/gojue/ecapture/issues/432) for more detail.
 
 ## What's Changed
-
+* ignore connect symbol cant found. by @cfc4n in https://github.com/gojue/ecapture/pull/431
+* Add support for stripped go binaries by @h0x0er in https://github.com/gojue/ecapture/pull/426
+* splitting gnutls/nss module from tls module lists. by @cfc4n in https://github.com/gojue/ecapture/pull/434
+* user: custom mapSize flag. improve memory usage #433 . by @cfc4n in https://github.com/gojue/ecapture/pull/435
+* add the `model` flag to distinguish the captured modes, support keylog captured. by @cfc4n in https://github.com/gojue/ecapture/pull/436
 
 **Full Changelog**: https://github.com/gojue/ecapture/compare/v0.6.6...v0.7.0
 
