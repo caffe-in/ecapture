@@ -19,6 +19,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"os"
+	"time"
 )
 
 type AttachType int64
@@ -154,6 +156,37 @@ func (se *SSLDataEvent) StringHex() string {
 	return s
 }
 
+func (se *SSLDataEvent) WriteFile(filepath string) error {
+	// open the file
+	f, err := os.OpenFile(filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	addr := "[TODO]"
+	if se.Addr != "" {
+		addr = se.Addr
+	}
+	var connInfo string
+	switch AttachType(se.DataType) {
+	case ProbeEntry:
+		connInfo = fmt.Sprintf("Recived %d bytes from %s", se.DataLen, addr)
+
+	case ProbeRet:
+		connInfo = fmt.Sprintf("Send %d bytes to %s", se.DataLen, addr)
+
+	default:
+		connInfo = fmt.Sprintf("UNKNOW_%d", se.DataType)
+	}
+	v := TlsVersion{Version: se.Version}
+	s := fmt.Sprintf("Timestamp:%s, PID:%d, Comm:%s, TID:%d, Version:%s, %s,Payload:\n%s", time.Unix(int64(se.Timestamp),0).Format("2006-01-02 15:04:05") ,se.Pid, bytes.TrimSpace(se.Comm[:]), se.Tid, v.String(), connInfo, string(se.Data[:se.DataLen]))
+	_, err = f.WriteString(s)
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
 func (se *SSLDataEvent) String() string {
 	//addr := se.module.(*module.MOpenSSLProbe).GetConn(se.Pid, se.Fd)
 	addr := "[TODO]"

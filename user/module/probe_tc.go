@@ -5,21 +5,24 @@ import (
 	"ecapture/pkg/util/ethernet"
 	"ecapture/user/event"
 	"encoding/binary"
+	"encoding/json"
+	"encoding/hex"
 	"fmt"
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
-	"github.com/google/gopacket/pcapgo"
 	"math"
 	"net"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
+	"github.com/google/gopacket/pcapgo"
 )
 
 // packets of TC probe
 type TcPacket struct {
-	info gopacket.CaptureInfo
+	info gopacket.CaptureInfo //caffe
 	data []byte
 }
 
@@ -139,6 +142,32 @@ func (t *MTCProbe) writePid(tcEvent *event.TcSkbEvent) (error, []byte) {
 	return nil, buffer.Bytes()
 }
 
+// save json line file, merge master key and packert info into json line file
+func (t *MTCProbe) saveJsonLine() (i int, err error) {
+	file, err := os.OpenFile(strings.Replace(t.pcapngFilename, "pcapng", "jsonl", -1), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return 0, err
+	}
+	defer file.Close()
+	t.tcPacketLocker.Lock()
+	defer t.tcPacketLocker.Unlock()
+	temp_json := map[string][]byte{"masterKey": t.masterKeyBuffer.Bytes()}
+	temp, err := json.Marshal(temp_json)
+	if err != nil {
+		return 0, err
+	}
+	file.WriteString(string(temp) + "\n")
+	for i, packet := range t.tcPackets {
+		dataHex:=hex.EncodeToString(packet.data)
+		temp, err := json.Marshal(map[string]interface{}{"id": i, "info": packet.info, "data": dataHex})
+		if err != nil {
+			return 0, err
+		}
+		file.WriteString(string(temp) + "\n")
+	}
+	return i, nil
+}
+
 // save pcapng file ,merge master key into pcapng file TODO
 func (t *MTCProbe) savePcapng() (i int, err error) {
 	err = t.pcapWriter.WriteDecryptionSecretsBlock(pcapgo.DSB_SECRETS_TYPE_TLS, t.masterKeyBuffer.Bytes())
@@ -221,7 +250,7 @@ func (t *MTCProbe) createPcapng(netIfs []net.Interface) error {
 func (t *MTCProbe) writePacket(dataLen uint32, timeStamp time.Time, packetBytes []byte) error {
 
 	// TODO add packetMeta info (e.g: process. pid, commom, etc.)
-	
+
 	info := gopacket.CaptureInfo{
 		Timestamp:     timeStamp,
 		CaptureLength: int(dataLen),

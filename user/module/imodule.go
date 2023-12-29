@@ -29,7 +29,7 @@ import (
 	"strings"
 )
 
-type IModule interface {
+type  IModule interface {
 	// Init 初始化
 	Init(context.Context, *log.Logger, config.IConfig) error
 
@@ -274,6 +274,7 @@ func (m *Module) ringbufEventReader(errChan chan error, em *ebpf.Map) {
 }
 
 func (m *Module) Decode(em *ebpf.Map, b []byte) (event event.IEventStruct, err error) {
+
 	es, found := m.child.DecodeFun(em)
 	if !found {
 		err = fmt.Errorf("%s\tcan't found decode function :%s, address:%p", m.child.Name(), em.String(), em)

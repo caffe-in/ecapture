@@ -23,15 +23,16 @@ import (
 	"ecapture/user/config"
 	"ecapture/user/event"
 	"fmt"
-	"github.com/cilium/ebpf"
-	manager "github.com/gojue/ebpfmanager"
-	"golang.org/x/sys/unix"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/cilium/ebpf"
+	manager "github.com/gojue/ebpfmanager"
+	"golang.org/x/sys/unix"
 )
 
 const (
@@ -237,10 +238,15 @@ func (m *MOpenSSLProbe) Close() error {
 		if err != nil {
 			m.logger.Printf("%s\tsave pcanNP failed, error:%v. \n", m.Name(), err)
 		}
+
 		if i == 0 {
 			m.logger.Printf("nothing captured, please check your network interface, see \"ecapture tls -h\" for more information.")
 		} else {
 			m.logger.Printf("%s\t save %d packets into pcapng file.\n", m.Name(), i)
+		}
+		_, err = m.saveJsonLine()
+		if err != nil {
+			m.logger.Printf("%s\tsave json line failed, error:%v. \n", m.Name(), err)
 		}
 	}
 
@@ -577,6 +583,7 @@ func (m *MOpenSSLProbe) dumpSslData(eventStruct *event.SSLDataEvent) {
 	if m.conf.GetHex() {
 		m.logger.Println(eventStruct.StringHex())
 	} else {
+		eventStruct.WriteFile("/root/project/ecapture/ecapture.txt")
 		m.logger.Println(eventStruct.String())
 	}
 }

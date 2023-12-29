@@ -159,7 +159,7 @@ static __always_inline int capture_packets(struct __sk_buff *skb, bool is_ingres
                              l4_hdr_off + sizeof(struct tcphdr))) {
         return TC_ACT_OK;
     }
-//    debug_bpf_printk("!!!capture_packets src_ip4 : %d, dst_ip4 port :%d\n", conn_id.src_ip4, conn_id.dst_ip4);
+   debug_bpf_printk("!!!capture_packets src_ip4 : %d, dst_ip4 port :%d\n", conn_id.src_ip4, conn_id.dst_ip4);
     struct tcphdr *tcp = (struct tcphdr *)(data_start + l4_hdr_off);
 
 #ifndef KERNEL_LESS_5_2

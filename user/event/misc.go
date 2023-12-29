@@ -17,6 +17,7 @@ package event
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"time"
 
 	"golang.org/x/sys/unix"
@@ -38,11 +39,16 @@ const (
 	COLORWHITE  = "\033[37m"
 )
 
+// changed by caffein
 func dumpByteSlice(b []byte, perfix string) *bytes.Buffer {
 	var a [ChunkSize]byte
 	bb := new(bytes.Buffer)
 	n := (len(b) + (ChunkSize - 1)) &^ (ChunkSize - 1)
+	file, err := os.OpenFile("/root/project/ecapture/ecapture.txt", os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0666)
 
+	if err != nil {
+		return nil
+	}
 	for i := 0; i < n; i++ {
 
 		// 序号列
@@ -75,10 +81,21 @@ func dumpByteSlice(b []byte, perfix string) *bytes.Buffer {
 
 		// 如果到达size长度，则换行
 		if i%ChunkSize == (ChunkSize - 1) {
+			line := fmt.Sprintf("    %s\n", string(a[:]))
+			if _, err := file.WriteString(line); err != nil {
+				continue
+			}
 			bb.WriteString(fmt.Sprintf("    %s\n", string(a[:])))
 		}
 	}
+	defer func() {
+		_, err := file.WriteString("\n") // 写入换行符到文件
+		if err != nil {
+			fmt.Println("Error writing newline to file:", err)
+		}
+	}()
 	return bb
+
 }
 
 func CToGoString(c []byte) string {
